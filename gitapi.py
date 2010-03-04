@@ -17,16 +17,69 @@ def branches(path):
 	return simplejson.dumps(resp_json)
 
 
+#def commits(path):
+#	repo = git.Repo(path)
+#	commits = repo.commits()
+#	n_commits = len(repo.commits())
+#	resp_json = {"commits": n_commits}
+#	i=0
+#	while i < n_commits:
+#		resp_json[str(i)]=repo.commits()[i].id
+#		i+=1
+#
+#	return simplejson.dumps(resp_json)
+
+
+def ordenar(posibles):
+	no_ordenada = []
+	ordenada = []
+	no_ordenada = posibles
+	if (len(posibles)>0):
+		reciente = no_ordenada[0]
+	while (len(no_ordenada)>0):
+		for i in no_ordenada:
+			if reciente.authored_date < i.authored_date:
+				reciente = i
+		no_ordenada.remove(reciente)
+		ordenada += [reciente]
+		if (len(no_ordenada)>0):
+			reciente = no_ordenada[0]
+	return ordenada
+
+
+def esta(commit, posibles):
+	found = False
+	i=0
+	while (not found and i<(len(posibles))):
+		if (posibles[i].id == commit.id):
+			found = True
+		else:
+			i+=1
+	return found
+
+# commits devuelve los 10 ultimos commits ordenados por fecha (de mas reciente a mas antiguo)
+# para ello necesita guardar una lista de "posibles commits" para ver cual es mas reciente (posibles)
+# el algoritmo es "anyadir" los padres del actual a posibles, calcular el mas reciente, anyadirlo a la lista, anyadir sus padres a posibles...
 def commits(path):
 	repo = git.Repo(path)
-	commits = repo.commits()
-	n_commits = len(repo.commits())
-	resp_json = {"commits": n_commits}
+	head = repo.commits()[0]
 	i=0
-	while i < n_commits:
-		resp_json[str(i)]=repo.commits()[i].id
+	resp_json = {"commits": 10}
+	resp_json[str(i)] = head.id
+	i+=1
+	posibles = []
+	posibles += head.parents
+	while i<10:
+		posibles = ordenar(posibles)
+		print posibles
+		if (len(posibles)>0):
+			head = posibles[0]
+			posibles.remove(head)
+			resp_json[str(i)] = head.id
+			for j in head.parents:
+				if (not esta(j, posibles)):
+					posibles += [j]
 		i+=1
-
 	return simplejson.dumps(resp_json)
 
 def head(path, commit):
