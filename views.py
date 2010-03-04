@@ -31,22 +31,52 @@ def api(request):
 	if request.method == 'GET':
 		apiquery = request.GET
 		operation = apiquery.__getitem__("op")
-		path = apiquery.__getitem__("path")
+		github = apiquery.__getitem__("github")
 		operation = int(operation)
-		if operation == 1:
-			return HttpResponse(gitapi.branches(path))
-		elif operation == 2:
-			return HttpResponse(gitapi.commits(path))
-		elif operation == 3:
+		github = int(github)
+		if (operation == -1):
+			return HttpResponse("OK");
+		if (operation == 0 and github == 0):
+			return HttpResponse(gitapi.get_directory())
+		elif (operation == 1 and github == 0):
+	                repository = apiquery.__getitem__("repository")
+			return HttpResponse(gitapi.get_branches(repository))
+		elif (operation == 2 and github == 0):
+	                repository = apiquery.__getitem__("repository")
+			branch = apiquery.__getitem__("branch")
+			page = apiquery.__getitem__("page")
+			return HttpResponse(gitapi.get_commits(repository, branch, page))
+		elif (operation == 3 and github == 0):
+	                repository = apiquery.__getitem__("repository")
 			commit = apiquery.__getitem__("commit")
-			return HttpResponse(gitapi.head(path,commit))
-		elif operation == 4:
+			return HttpResponse(gitapi.get_head(repository,commit))
+		elif (operation == 4 and github == 0):
+	                repository = apiquery.__getitem__("repository")
 			tree = apiquery.__getitem__("tree")
-			return HttpResponse(gitapi.tree(path,tree))
-		elif operation == 5:
+			return HttpResponse(gitapi.get_tree(repository,tree))
+		elif (operation == 5 and github == 0):
+	                repository = apiquery.__getitem__("repository")
 			blob = apiquery.__getitem__("blob")
-			return HttpResponse(gitapi.blobs(path,blob))
-
+			return HttpResponse(gitapi.get_blob(repository,blob))
+		elif (operation == 1 and github == 1):
+			user = apiquery.__getitem__("user")
+			repository = apiquery.__getitem__("repository")
+			return HttpResponse(gitapi.get_branches_github(user, repository))
+		elif (operation == 2 and github == 1):
+			user = apiquery.__getitem__("user")
+			repository = apiquery.__getitem__("repository")
+			branch = apiquery.__getitem__("branch")
+			return HttpResponse(gitapi.get_commits_github(user, repository, branch))
+		elif (operation == 4 and github == 1):
+			user = apiquery.__getitem__("user")
+			repository = apiquery.__getitem__("repository")
+			tree = apiquery.__getitem__("tree")
+			return HttpResponse(gitapi.get_tree_github(user, repository, tree))
+		elif (operation == 5 and github == 1):
+			user = apiquery.__getitem__("user")
+			repository = apiquery.__getitem__("repository")
+			blob = apiquery.__getitem__("blob")
+			return HttpResponse(gitapi.get_blob_github(user, repository, blob))
 		else:
 			return HttpResponse("Invalid arguments for the API")		
 
